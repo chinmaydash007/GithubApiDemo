@@ -1,4 +1,4 @@
-package com.chinmay.githubapidemo.api
+package com.chinmay.githubapidemo.data_source.remote
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -24,5 +24,5 @@ object RetrofitBuilder {
         return OkHttpClient.Builder().addInterceptor(interceptor).build()
     }
 
-    val apiService: ApiService = getRetrofit().create(ApiService::class.java)
+    val githubApiService: GithubApiService = getRetrofit().create(GithubApiService::class.java)
 }

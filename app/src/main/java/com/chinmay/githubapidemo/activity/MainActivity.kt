@@ -13,25 +13,18 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.chinmay.githubapidemo.R
 import com.chinmay.githubapidemo.adapter.MainAdapter
-import com.chinmay.githubapidemo.api.ApiHelper
-import com.chinmay.githubapidemo.api.RetrofitBuilder
 import com.chinmay.githubapidemo.databinding.MainActivityBinding
-import com.chinmay.githubapidemo.db.RepoDataBase
-import com.chinmay.githubapidemo.db.RepoRoomModel
 import com.chinmay.githubapidemo.model.Repos
 import com.chinmay.githubapidemo.model.ReposItem
 import com.chinmay.githubapidemo.utils.NetWorkConnectionType
-import com.chinmay.githubapidemo.utils.NetworkConnection
+import com.chinmay.githubapidemo.utils.NetworkConnectionStatus
 import com.chinmay.githubapidemo.utils.Status
-import com.chinmay.githubapidemo.viewmodel.MainViewModel
-import com.chinmay.githubapidemo.viewmodel.ViewModelFactory
+import com.chinmay.githubapidemo.viewmodel.GithubViewModel
+import com.chinmay.githubapidemo.viewmodel.GithubViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: GithubViewModel
     lateinit var binding: MainActivityBinding
     lateinit var adapter: MainAdapter
 
@@ -42,30 +35,23 @@ class MainActivity : AppCompatActivity() {
         setupViewModel()
         setupObservers()
 
-
-        val networkConnection: NetworkConnection = NetworkConnection(applicationContext)
-        networkConnection.observe(this, Observer { networkConnectionType ->
+        val networkConnectionStatus = NetworkConnectionStatus(applicationContext)
+        networkConnectionStatus.observe(this, Observer { networkConnectionType ->
             showNetworkType(networkConnectionType)
+        })
+        viewModel.getRepoSFromLocal().observe(this, Observer { repoList ->
+            repoList.forEach { repoRoomModel ->
+
+            }
         })
     }
 
-    private fun showNetworkType(netWorkConnectionType: NetWorkConnectionType) {
-        Log.d("mytag2","$netWorkConnectionType")
-        binding.connectionTypeTextView.text = netWorkConnectionType.name
-        val loadAnimator =
-            AnimatorInflater.loadAnimator(this, R.animator.connection_layout_animator)
-        loadAnimator.setTarget(binding.connectionLayout)
-        loadAnimator.start()
-    }
 
     private fun setupViewModel() {
-        val repoDao = RepoDataBase.getInstance(applicationContext).repoDao
-
-
         viewModel = ViewModelProviders.of(
             this,
-            ViewModelFactory(ApiHelper(RetrofitBuilder.apiService), repoDao)
-        ).get(MainViewModel::class.java)
+            GithubViewModelFactory(application)
+        ).get(GithubViewModel::class.java)
     }
 
     private fun setupUI() {
@@ -79,7 +65,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-
     private fun setupObservers() {
         viewModel.getRepos("chinmaydash007").observe(this, Observer {
             it?.let { resource ->
@@ -89,11 +74,6 @@ class MainActivity : AppCompatActivity() {
                         progressBar.visibility = View.GONE
                         resource.data?.let { repos: Repos ->
                             for (repo in repos) {
-                                var repoModel = RepoRoomModel(0, repo.name, repo.url)
-
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    viewModel.insert(repoModel)
-                                }
                                 addReposToRecyclerView(repo)
                             }
                         }
@@ -113,10 +93,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addReposToRecyclerView(repo: ReposItem) {
-        Log.d("mytag", repo.toString())
         adapter.apply {
             addRepoItem(repo)
             notifyDataSetChanged()
         }
+    }
+
+    private fun showNetworkType(netWorkConnectionType: NetWorkConnectionType) {
+        Log.d("mytag2", "$netWorkConnectionType")
+        binding.connectionTypeTextView.text = netWorkConnectionType.name
+        val loadAnimator =
+            AnimatorInflater.loadAnimator(this, R.animator.connection_layout_animator)
+        loadAnimator.setTarget(binding.connectionLayout)
+        loadAnimator.start()
     }
 }

@@ -8,14 +8,14 @@ import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.LiveData
 
-class NetworkConnection(context: Context) : LiveData<NetWorkConnectionType>() {
+class NetworkConnectionStatus(context: Context) : LiveData<NetWorkConnectionType>() {
     private var connectivityManager: ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     init {
         val activeNetwork = connectivityManager.activeNetwork
         val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
-        //4
+
         if (networkCapabilities != null &&
             networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         ) {
@@ -47,28 +47,43 @@ class NetworkConnection(context: Context) : LiveData<NetWorkConnectionType>() {
         networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onLost(network: Network) {
                 super.onLost(network)
+                val networkCapability = connectivityManager.getNetworkCapabilities(network)
+                
+//                if(networkCapability==null){
+//                    postValue(NetWorkConnectionType.NONE)
+//                }
+
+//                networkCapability?.let {
+//                    val isNotConnected =
+//                        !networkCapability.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) && !networkCapability.hasTransport(
+//                            NetworkCapabilities.TRANSPORT_CELLULAR
+//                        )
+//                    if (isNotConnected) {
+//                        postValue(NetWorkConnectionType.NONE)
+//                    }
+//                }
                 postValue(NetWorkConnectionType.NONE)
             }
 
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
-                val nw: Network? = connectivityManager.activeNetwork
-                val actNw = connectivityManager.getNetworkCapabilities(nw)
-                actNw?.let {
-                    var isCellular =
-                        actNw.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && actNw.hasTransport(
+                val networkCapability = connectivityManager.getNetworkCapabilities(network)
+                networkCapability?.let {
+                    val isWifi =
+                        networkCapability.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && networkCapability.hasTransport(
+                            NetworkCapabilities.TRANSPORT_WIFI
+                        )
+                    val isCellular =
+                        networkCapability.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && networkCapability.hasTransport(
                             NetworkCapabilities.TRANSPORT_CELLULAR
                         )
-                    if (isCellular) {
-                        postValue(NetWorkConnectionType.CELLULAR)
-                    } else {
+                    if (isWifi) {
                         postValue(NetWorkConnectionType.WIFI)
+                    } else if (isCellular) {
+                        postValue(NetWorkConnectionType.CELLULAR)
                     }
                 }
-
-
             }
-
         }
     }
 

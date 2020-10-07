@@ -1,4 +1,4 @@
-package com.chinmay.githubapidemo.db
+package com.chinmay.githubapidemo.data_source.local
 
 import android.content.Context
 import androidx.room.Database

@@ -1,4 +1,4 @@
-package com.chinmay.githubapidemo.db
+package com.chinmay.githubapidemo.data_source.local
 
 import androidx.lifecycle.LiveData
 import androidx.room.*

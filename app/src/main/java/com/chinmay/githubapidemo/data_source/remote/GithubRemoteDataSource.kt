@@ -10,7 +10,6 @@ class GithubRemoteDataSource {
 
     fun getRepos(userName: String) = liveData(Dispatchers.IO) {
         emit(Resource.loading(data = null))
-
         try {
             emit(Resource.success(data = apiHelper.getRepos(userName)))
         } catch (exception: Exception) {

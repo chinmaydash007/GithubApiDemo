@@ -1,2 +1,3 @@
+include ':music_app_library_module'
 include ':app'
 rootProject.name = "GithubApiDemo"

@@ -39,6 +39,7 @@ class NetworkConnectionStatus(context: Context) : LiveData<NetWorkConnectionType
         )
     }
 
+
     override fun onInactive() {
         connectivityManager.unregisterNetworkCallback(networkCallback)
     }
